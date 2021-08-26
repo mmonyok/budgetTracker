@@ -12,8 +12,9 @@ db = e.target.result;
 db.createObjectStore("budgetStore");
 };
 
+// This will log out an error, if one happens.
 request.onerror = (e) => {
-
+  console.log(`Error: ${e.target.errorCode}`);
 }
 
 function checkDatabase() {
