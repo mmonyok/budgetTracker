@@ -4,12 +4,19 @@ let db;
 const request = indexedDB.open("budgetTracker", 1);
 
 request.onupgradeneeded = (e) => {
-// possibly add updating to new version from old version.
+  console.log("Upgrading IndexDB");
 
-db = e.target.result;
+  const { oldDbVersion } = e;
+  const newDbVersion = e.newDbVersion || db.version;
 
-// what does autoIncrement possibly do here?
-db.createObjectStore("budgetStore");
+  console.log(`Database now updated from version ${oldDbVersion} to version ${newDbVersion}.`)
+
+  db = e.target.result;
+
+  // what does autoIncrement possibly do here?
+  if (db.objectStoreNames.length === 0) {
+    db.createObjectStore("budgetStore", { autoIncrement: true });
+  }
 };
 
 // This will log out an error, if one happens.
