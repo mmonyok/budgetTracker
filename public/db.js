@@ -1,9 +1,10 @@
 let db;
+let budgetVersion;
 
-// Here we create a new db request for our "budgetTracker" database.
-const request = indexedDB.open("budgetTracker", 1);
+// Creates a new db request for our "budgetTracker" DB.
+const request = indexedDB.open("budgetTracker", budgetVersion || 1);
 
-// This handles 
+// This handles database versioning. 
 request.onupgradeneeded = (e) => {
   console.log("Upgrading IndexDB");
 
@@ -14,13 +15,13 @@ request.onupgradeneeded = (e) => {
 
   db = e.target.result;
 
-  // This creates a new object Store if one does not already exist.
+  // Creates a new object Store, if one does not already exist.
   if (db.objectStoreNames.length === 0) {
     db.createObjectStore("budgetStore", { autoIncrement: true });
   }
 };
 
-// This will log out an error, if one happens.
+// Logs out an error, if one happens.
 request.onerror = (e) => {
   console.log(`Error: ${e.target.errorCode}`);
 }
@@ -29,11 +30,11 @@ function checkDatabase() {
 
 };
 
+// After each transaction, checks if it is online before running the checkDatabase function.
 request.onsuccess = (e) => {
   console.log("Success!");
   db = e.target.result;
 
-  // After each transaction it will check if you are online before reading from the DB.
   if (navigator.onLine) {
     console.log("Connected to the interwebs again!");
     checkDatabase();
@@ -41,6 +42,7 @@ request.onsuccess = (e) => {
 
 };
 
+// This function will save records to the indexedDB.
 const saveRecord = (record) => {
   console.log('Current record saved.');
 
@@ -54,5 +56,5 @@ const saveRecord = (record) => {
   store.add(record);
 };
 
-// This event checks if the app comes back online.
+// This event listener checks for when the app comes back online then runs the checkDatabase function.
 window.addEventListener("online", checkDatabase);
