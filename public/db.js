@@ -2,16 +2,16 @@ let db;
 let budgetVersion;
 
 // Creates a new db request for our "budgetTracker" DB.
-const request = indexedDB.open("budgetTracker", budgetVersion || 1);
+const request = indexedDB.open("budgetTracker", budgetVersion || 33);
 
 // This handles database versioning. 
 request.onupgradeneeded = (e) => {
   console.log("Upgrading IndexDB");
 
-  const { oldDbVersion } = e;
-  const newDbVersion = e.newDbVersion || db.version;
+  const { oldVersion } = e;
+  const newDbVersion = e.newVersion || db.version;
 
-  console.log(`Database now updated from version ${oldDbVersion} to version ${newDbVersion}.`)
+  console.log(`Database now updated from version ${oldVersion} to version ${newDbVersion}.`)
 
   db = e.target.result;
 
@@ -26,8 +26,43 @@ request.onerror = (e) => {
   console.log(`Error: ${e.target.errorCode}`);
 }
 
+// This function will be posting data or transactions to the database.
 function checkDatabase() {
+  console.log("Process of checking database begun.");
 
+  // Here we open a transaction on our db and give it read/write priveleges.
+  let transaction = db.transaction(["budgetStore"], "readwrite");
+
+  // Here we are providing access to our db object.
+  const store = transaction.objectStore("budgetStore");
+
+  // Here we are creating a variable that encompasses all records from our store.
+  const storeRecords = store.getAll();
+
+  storeRecords.onsuccess = () => {
+    // Here we are bulk adding items from the store to the database once we are online.
+    if (storeRecords.result.length > 0) {
+      fetch("/api/transaction/bulk", {
+        method: "POST",
+        body: JSON.stringify(storeRecords.result),
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((respons) => respons.json())
+        .then((res) => {
+          if (res.length !== 0) {
+            transaction = db.transaction(["budgetStore"], "readwrite");
+
+            const currentStore = transaction.objectStore("budgetStore");
+
+            currentStore.clear();
+            console.log("The store is now wiped clean.");
+          }
+        });
+    }
+  };
 };
 
 // After each transaction, checks if it is online before running the checkDatabase function.
