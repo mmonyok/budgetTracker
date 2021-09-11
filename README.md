@@ -56,7 +56,7 @@ An app to keep track of your money, especially when you have no internet service
 ## Usage
 Provide instructions and examples for use. Include screenshots as needed.
 
-![Screenshot of finished application.](./public/images/screenshot.png)
+![Screenshot of finished application.](./public/images/screenshot.jpg)
 
 ## Credits
 List your collaborators, if any, with links to their GitHub profiles.
